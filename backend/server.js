@@ -18,8 +18,21 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// Body parsing with clean JSON error handling
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Middleware to catch JSON parsing errors
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({
+      success: false,
+      message: 'Malformed JSON payload received.',
+    });
+  }
+  next(err);
+});
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -72,7 +85,7 @@ app.use((err, req, res, next) => {
 
 // Start Server
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`========================================`);
     console.log(`🚀 EventHive Backend running on port ${PORT}`);
     console.log(`📡 URL: http://localhost:${PORT}`);
