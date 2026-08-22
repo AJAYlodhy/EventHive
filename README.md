@@ -1,89 +1,132 @@
-# 🐝 EventHive – Admin Panel (`feature/admin`)
+# 🐝 EventHive – Campus Event Management & Ticketing Platform
 
-**College Event Management Platform — Administrative Management Module**
+EventHive is a modern web application for discovering, managing, and registering for campus hackathons, technical workshops, cultural fests, sports tournaments, and seminars.
 
-EventHive Admin Panel provides a comprehensive, responsive management workspace for college administrators to oversee users, student organizers, event approval pipelines, vendor proposals, reports, and campus notifications.
+---
+
+## 🧩 Modules
+
+### Student Dashboard (`feature/student`)
+
+The Student Dashboard provides a seamless, responsive portal for campus students to:
+
+- **Dashboard / Home**: View personalized greeting, active registration statistics, upcoming events, and featured campus activities.
+- **Browse Events**: Search events with filters for Category, Department, and Date.
+- **Event Registration**: Register for campus events with seat capacity tracking and duplicate registration prevention.
+- **My Events**: Track confirmed upcoming events, view schedules & venues, and manage/cancel registrations.
+- **Student Profile**: View and edit student details such as Name, Roll Number, Department, Semester, Academic Year, and Bio.
+- **Notifications**: Receive registration confirmations, reminders, and announcements.
+
+### Admin Panel (`feature/admin`)
+
+The Admin Panel provides a comprehensive management workspace for college administrators to oversee users, organizers, event approval pipelines, vendor proposals, reports, and campus notifications.
+
+Admin features include:
+
+- Admin login and session-based authentication
+- User management
+- Student and organizer management
+- Event approval and rejection
+- Service provider/vendor management
+- Vendor application management
+- Notifications
+- Reports and engagement analytics
+
+### Organizer Module (`feature/organizer`)
+
+The Organizer module allows event organizers to manage campus events and participants.
+
+Organizer features include:
+
+- Organizer dashboard
+- Event creation and management
+- Event details and scheduling
+- Participant management
+- Registration tracking
+- Event status management
+- Notifications
 
 ---
 
 ## 🛠️ Tech Stack
 
+### Admin Panel
+
 - **Backend:** Node.js + Express.js
-- **View Engine:** EJS (Embedded JavaScript Templates)
+- **View Engine:** EJS
 - **Styling:** Vanilla CSS with CSS Custom Properties
-- **Architecture:** MVC (Model/Mock Data, Views, Controllers, Middleware)
+- **Architecture:** MVC
 - **Authentication:** Session-Based Admin Authentication & Protected Route Middleware
+
+### Student Dashboard
+
+- **Frontend:** React 18
+- **Backend:** Node.js + Express.js REST API
+- **Styling:** Responsive web interface
+- **API:** REST API with local fallback support
+
+### Organizer Module
+
+- **Backend:** Node.js + Express.js
+- **Frontend:** HTML/CSS/JavaScript
+- **Architecture:** MVC / REST-based architecture
 
 ---
 
 ## 📁 Project Structure
 
-```
+```text
 EVENTHIVE/
-├── server.js                  # Express app entry point
-├── package.json               # Dependencies and scripts
-├── .env.example               # Environment variable template
-├── .gitignore                 # Git ignore rules
-├── public/                    # Static assets
+
+├── backend/
+│   ├── package.json
+│   └── server.js
+│
+├── frontend/
+│   ├── index.html
+│   ├── package.json
+│   └── src/
+│       └── services/
+│           └── api.js
+│
+├── public/
 │   ├── css/
-│   │   └── admin.css          # Admin panel design system & styles
+│   │   ├── admin.css
+│   │   └── ...
 │   └── js/
-│       └── admin.js           # Admin client-side JS & interactions
-└── src/
-    ├── controllers/
-    │   └── adminController.js # Complete Admin controller actions
-    ├── middleware/
-    │   └── auth.js            # Admin authentication & session protection
-    ├── data/
-    │   └── mockData.js        # Data store (ready for DB layer integration)
-    ├── routes/
-    │   └── adminRoutes.js     # Admin route definitions
-    └── views/
-        ├── layouts/
-        │   └── adminLayout.ejs  # Base Admin Layout with Sidebar & Topnav
-        └── admin/
-            ├── login.ejs        # Admin Login Page
-            ├── dashboard.ejs    # KPI Statistics & Pending Approvals
-            ├── users.ejs        # User Management (Students, Organizers)
-            ├── organizers.ejs   # Club & Organizer Approvals
-            ├── events.ejs       # Campus Event Approvals & Pipeline
-            ├── providers.ejs    # Service Provider & Vendor Verification
-            ├── applications.ejs # Event Vendor Proposals Management
-            ├── notifications.ejs# Admin Notifications Inbox
-            └── reports.ejs      # Reports, Analytics & Engagement Metrics
-```
-
----
-
-## 🚀 Getting Started
-
-### 1. Install Dependencies
-```bash
-npm install
-```
-
-### 2. Start Development Server
-```bash
-npm run dev
-# or
-npm start
-```
-
-The application runs on `http://localhost:5000`.
-
----
-
-## 🔑 Admin Routes & Features
-
-| Route | Method | Description |
-|---|---|---|
-| `/admin/login` | `GET` / `POST` | Admin authentication page (Default dev: `admin@eventhive.com` / `admin123`) |
-| `/admin/logout` | `GET` | Clear session and log out |
-| `/admin/dashboard` | `GET` | Dashboard with KPIs, recent events, and approval queue |
-| `/admin/users` | `GET` | User list with search, role filters, status toggles, and deletion |
-| `/admin/organizers` | `GET` | Student clubs & organizers verification management |
-| `/admin/events` | `GET` | Campus events pipeline (Approve, Reject, Delete) |
-| `/admin/providers` | `GET` | Service vendor management (Hotels, Catering, Sound, Decor) |
-| `/admin/applications` | `GET` | Event proposals management from vendors |
-| `/admin/notifications` | `GET` | Administrative alerts and mark-as-read inbox |
-| `/admin/reports` | `GET` | Engagement analytics, department breakdowns, and category stats |
+│       ├── admin.js
+│       └── ...
+│
+├── src/
+│   ├── controllers/
+│   │   └── adminController.js
+│   │
+│   ├── middleware/
+│   │   └── auth.js
+│   │
+│   ├── data/
+│   │   └── mockData.js
+│   │
+│   ├── routes/
+│   │   └── adminRoutes.js
+│   │
+│   └── views/
+│       ├── layouts/
+│       │   └── adminLayout.ejs
+│       │
+│       └── admin/
+│           ├── login.ejs
+│           ├── dashboard.ejs
+│           ├── users.ejs
+│           ├── organizers.ejs
+│           ├── events.ejs
+│           ├── providers.ejs
+│           ├── applications.ejs
+│           ├── notifications.ejs
+│           └── reports.ejs
+│
+├── server.js
+├── package.json
+├── package-lock.json
+├── .gitignore
+└── README.md
