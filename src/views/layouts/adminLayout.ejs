@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof pageTitle !== 'undefined' ? pageTitle + ' | ' : '' %>EventHive Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-body">
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2 class="sidebar-logo">🐝 EventHive</h2>
+      <span class="sidebar-subtitle">Admin Panel</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul>
+        <li>
+          <a href="/admin/dashboard" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'dashboard' ? 'active' : '' %>">
+            <span class="nav-icon">📊</span>
+            <span class="nav-text">Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link">
+            <span class="nav-icon">👥</span>
+            <span class="nav-text">Users</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link">
+            <span class="nav-icon">🎪</span>
+            <span class="nav-text">Events</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link">
+            <span class="nav-icon">📋</span>
+            <span class="nav-text">Approvals</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link">
+            <span class="nav-icon">🏢</span>
+            <span class="nav-text">Organizers</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link">
+            <span class="nav-icon">🔧</span>
+            <span class="nav-text">Service Providers</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-text">Settings</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="main-wrapper">
+
+    <!-- Top Navigation -->
+    <header class="top-nav">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+        ☰
+      </button>
+      <h1 class="page-title"><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Admin' %></h1>
+      <div class="top-nav-right">
+        <span class="admin-badge">Admin</span>
+        <span class="admin-avatar">👤</span>
+      </div>
+    </header>
+
+    <!-- Page Content (injected by child view via content variable) -->
+    <main class="main-content">
+      <%- typeof content !== 'undefined' ? content : '' %>
+    </main>
+
+  </div>
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>
