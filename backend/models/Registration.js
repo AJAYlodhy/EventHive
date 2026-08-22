@@ -8,6 +8,12 @@ const registrationSchema = new mongoose.Schema(
     participantEmail: { type: String, required: true, lowercase: true, trim: true },
     participantPhone: { type: String, default: '' },
     studentId: { type: String, default: '' },
+    userId: { type: String, default: '' },
+    registrationType: {
+      type: String,
+      enum: ['CollegeStudent', 'ExternalVisitor'],
+      default: 'CollegeStudent'
+    },
     ticketCode: { type: String, required: true, unique: true },
     status: {
       type: String,

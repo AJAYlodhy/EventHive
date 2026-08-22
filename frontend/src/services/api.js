@@ -1,5 +1,5 @@
 /**
- * EventHive Unified API Client (Student + Organizer + Auth)
+ * EventHive Unified API Client (Student, Coordinator, Host, Admin, External)
  */
 const API_BASE_URL = '/api';
 
@@ -73,114 +73,158 @@ export const fetchApi = async (endpoint, options = {}) => {
   return data;
 };
 
-// --- Student Specific API Helper ---
+// --- Unified API Service Object ---
 export const api = {
+  // Authentication & Directory
+  login: async (email, password) => {
+    return await fetchApi('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password })
+    });
+  },
+
+  demoLogin: async (role) => {
+    return await fetchApi('/auth/demo-login', {
+      method: 'POST',
+      body: JSON.stringify({ role })
+    });
+  },
+
+  getHosts: async () => {
+    return await fetchApi('/hosts');
+  },
+
   // Student Profile
   getProfile: async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/student/profile`);
-      if (!res.ok) throw new Error('Failed to fetch profile');
-      return await res.json();
-    } catch (err) {
-      console.warn('Backend API unavailable, using local state fallback');
-      const saved = localStorage.getItem('eh_student');
-      return saved ? JSON.parse(saved) : null;
-    }
+    return await fetchApi('/student/profile');
   },
 
   updateProfile: async (profileData) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/student/profile`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profileData)
-      });
-      return await res.json();
-    } catch (err) {
-      localStorage.setItem('eh_student', JSON.stringify(profileData));
-      return { success: true, profile: profileData };
-    }
+    return await fetchApi('/student/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData)
+    });
   },
 
-  // Events
+  // Student & Coordinator Event Proposals Workflow
+  submitEventRequest: async (requestData) => {
+    return await fetchApi('/student/event-requests', {
+      method: 'POST',
+      body: JSON.stringify(requestData)
+    });
+  },
+
+  getMyEventRequests: async () => {
+    return await fetchApi('/student/event-requests');
+  },
+
+  // Event Discovery (Public + College-Only)
   getEvents: async (params = {}) => {
-    try {
-      const query = new URLSearchParams(params).toString();
-      const res = await fetch(`${API_BASE_URL}/events?${query}`);
-      if (!res.ok) throw new Error('Failed to fetch events');
-      return await res.json();
-    } catch (err) {
-      const saved = localStorage.getItem('eh_events');
-      return saved ? JSON.parse(saved) : [];
-    }
+    const query = new URLSearchParams(params).toString();
+    return await fetchApi(`/events${query ? `?${query}` : ''}`);
   },
 
   getEventById: async (id) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/events/${id}`);
-      if (!res.ok) throw new Error('Failed to fetch event');
-      return await res.json();
-    } catch (err) {
-      const saved = localStorage.getItem('eh_events');
-      const events = saved ? JSON.parse(saved) : [];
-      return events.find(e => e.id === id || e._id === id) || null;
-    }
+    return await fetchApi(`/events/${id}`);
   },
 
-  // Registrations
+  // Registrations (Verified College Student)
   getMyEvents: async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/registrations/my-events`);
-      if (!res.ok) throw new Error('Failed to fetch registered events');
-      return await res.json();
-    } catch (err) {
-      const saved = localStorage.getItem('eh_registrations');
-      return saved ? JSON.parse(saved) : [];
-    }
+    return await fetchApi('/registrations/my-events');
   },
 
   registerForEvent: async (eventId) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/registrations`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventId })
-      });
-      return await res.json();
-    } catch (err) {
-      return { success: true, message: 'Registered locally' };
-    }
+    return await fetchApi('/registrations', {
+      method: 'POST',
+      body: JSON.stringify({ eventId })
+    });
+  },
+
+  // External Visitor Registration (Public Events Only)
+  externalRegister: async (eventId, { name, email, phone }) => {
+    return await fetchApi('/registrations/external', {
+      method: 'POST',
+      body: JSON.stringify({ eventId, name, email, phone })
+    });
   },
 
   cancelRegistration: async (eventId) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/registrations/${eventId}`, {
-        method: 'DELETE'
-      });
-      return await res.json();
-    } catch (err) {
-      return { success: true, message: 'Cancelled locally' };
-    }
+    return await fetchApi(`/registrations/${eventId}`, {
+      method: 'DELETE'
+    });
   },
 
   // Notifications
   getNotifications: async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/notifications`);
-      if (!res.ok) throw new Error('Failed to fetch notifications');
-      return await res.json();
-    } catch (err) {
-      const saved = localStorage.getItem('eh_notifications');
-      return saved ? JSON.parse(saved) : [];
-    }
+    return await fetchApi('/notifications');
   },
 
   markNotificationsAsRead: async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/notifications/mark-read`, { method: 'PUT' });
-      return await res.json();
-    } catch (err) {
-      return { success: true };
-    }
+    return await fetchApi('/notifications/mark-read', {
+      method: 'PUT'
+    });
+  },
+
+  // Coordinator Actions
+  getCoordinatorRequests: async () => {
+    return await fetchApi('/coordinator/requests');
+  },
+
+  createCoordinatorEvent: async (eventData) => {
+    return await fetchApi('/coordinator/events', {
+      method: 'POST',
+      body: JSON.stringify(eventData)
+    });
+  },
+
+  resubmitCoordinatorEvent: async (eventId, eventData) => {
+    return await fetchApi(`/coordinator/events/${eventId}/resubmit`, {
+      method: 'POST',
+      body: JSON.stringify(eventData)
+    });
+  },
+
+  assignHostToEvent: async (eventId, hostId, remarks) => {
+    return await fetchApi(`/coordinator/events/${eventId}/assign-host`, {
+      method: 'POST',
+      body: JSON.stringify({ hostId, remarks })
+    });
+  },
+
+  // Faculty Host Actions
+  getHostDashboard: async () => {
+    return await fetchApi('/host/dashboard');
+  },
+
+  getHostAssignedEvents: async () => {
+    return await fetchApi('/host/events');
+  },
+
+  checkScheduleConflict: async (conflictPayload) => {
+    return await fetchApi('/host/check-conflict', {
+      method: 'POST',
+      body: JSON.stringify(conflictPayload)
+    });
+  },
+
+  hostApproveEvent: async (eventId, remarks, overrideConflict = false) => {
+    return await fetchApi(`/host/events/${eventId}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({ remarks, overrideConflict })
+    });
+  },
+
+  hostRejectEvent: async (eventId, remarks) => {
+    return await fetchApi(`/host/events/${eventId}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ remarks })
+    });
+  },
+
+  hostRequestChanges: async (eventId, remarks) => {
+    return await fetchApi(`/host/events/${eventId}/request-changes`, {
+      method: 'POST',
+      body: JSON.stringify({ remarks })
+    });
   }
 };
