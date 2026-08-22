@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+frontend_student_backup/
 
 # Environment variables
 .env

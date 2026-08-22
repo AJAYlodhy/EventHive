@@ -1,0 +1,122 @@
+<!-- User Management Page -->
+<div class="page-container">
+
+  <!-- Header Controls & Filters -->
+  <div class="toolbar-card">
+    <form action="/admin/users" method="GET" class="filter-form">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          name="search"
+          placeholder="Search by name, email, roll number, department..."
+          value="<%= filters.search %>"
+          class="form-input search-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Role:</label>
+        <select name="role" class="form-select" onchange="this.form.submit()">
+          <option value="All" <%= filters.role === 'All' ? 'selected' : '' %>>All Roles</option>
+          <option value="Student" <%= filters.role === 'Student' ? 'selected' : '' %>>Students</option>
+          <option value="Organizer" <%= filters.role === 'Organizer' ? 'selected' : '' %>>Organizers</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Status:</label>
+        <select name="status" class="form-select" onchange="this.form.submit()">
+          <option value="All" <%= filters.status === 'All' ? 'selected' : '' %>>All Statuses</option>
+          <option value="Active" <%= filters.status === 'Active' ? 'selected' : '' %>>Active</option>
+          <option value="Inactive" <%= filters.status === 'Inactive' ? 'selected' : '' %>>Inactive</option>
+          <option value="Suspended" <%= filters.status === 'Suspended' ? 'selected' : '' %>>Suspended</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--sm">Filter</button>
+      <% if (filters.search || filters.role !== 'All' || filters.status !== 'All') { %>
+        <a href="/admin/users" class="btn btn--outline btn--sm">Reset</a>
+      <% } %>
+    </form>
+  </div>
+
+  <!-- Users Table Section -->
+  <section class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">Registered Campus Users (<%= users.length %>)</h2>
+    </div>
+
+    <% if (users.length === 0) { %>
+      <div class="empty-state">
+        <span class="empty-icon">👥</span>
+        <h3>No users match your criteria</h3>
+        <p>Try refining or clearing your search filters to find registered students or organizers.</p>
+        <a href="/admin/users" class="btn btn--primary btn--sm" style="margin-top: 12px;">Clear Filters</a>
+      </div>
+    <% } else { %>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Roll Number</th>
+              <th>Department</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Events</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% users.forEach(function(user) { %>
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <img src="<%= user.avatar %>" alt="<%= user.name %>" class="user-avatar-sm" />
+                    <div>
+                      <strong class="user-name"><%= user.name %></strong>
+                      <span class="user-email"><%= user.email %></span>
+                    </div>
+                  </div>
+                </td>
+                <td><code><%= user.rollNumber || '—' %></code></td>
+                <td><%= user.department %></td>
+                <td>
+                  <span class="badge badge--<%= user.role.toLowerCase() %>">
+                    <%= user.role %>
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge status-badge--<%= user.status.toLowerCase() %>">
+                    <%= user.status %>
+                  </span>
+                </td>
+                <td><strong><%= user.registeredEventsCount %></strong></td>
+                <td>
+                  <div class="action-btn-group">
+                    <form action="/admin/users/<%= user.id %>/status" method="POST" style="display:inline;">
+                      <button
+                        type="submit"
+                        class="btn btn--sm <%= user.status === 'Active' ? 'btn--warn' : 'btn--approve' %>"
+                        title="<%= user.status === 'Active' ? 'Deactivate user' : 'Activate user' %>"
+                      >
+                        <%= user.status === 'Active' ? 'Deactivate' : 'Activate' %>
+                      </button>
+                    </form>
+                    <form action="/admin/users/<%= user.id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete user <%= user.name %>? This action cannot be undone.');">
+                      <button type="submit" class="btn btn--sm btn--reject" title="Delete User">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+
+</div>

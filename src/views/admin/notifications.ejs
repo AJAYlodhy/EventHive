@@ -1,0 +1,63 @@
+<!-- Admin Notifications Page -->
+<div class="page-container">
+
+  <div class="toolbar-card" style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <h2 style="font-size: 16px; font-weight: 700; color: var(--color-text);">Admin Notifications Inbox</h2>
+      <p style="font-size: 13px; color: var(--color-text-light); margin-top: 2px;">Review real-time approval requests, registration notices, and system alerts</p>
+    </div>
+
+    <% if (notifications.some(n => !n.read)) { %>
+      <form action="/admin/notifications/mark-read" method="POST">
+        <button type="submit" class="btn btn--outline btn--sm">
+          ✓ Mark All as Read
+        </button>
+      </form>
+    <% } %>
+  </div>
+
+  <section class="dashboard-section">
+    <% if (notifications.length === 0) { %>
+      <div class="empty-state">
+        <span class="empty-icon">🔔</span>
+        <h3>No notifications</h3>
+        <p>You are all caught up! There are no pending administrative notices.</p>
+      </div>
+    <% } else { %>
+      <div class="notifications-list">
+        <% notifications.forEach(function(notif) { %>
+          <div class="notification-card <%= !notif.read ? 'notification-card--unread' : '' %>">
+            <div class="notif-icon-col">
+              <% if (notif.type === 'event_request') { %>
+                <span class="notif-badge notif-badge--event">🎪</span>
+              <% } else if (notif.type === 'organizer_request') { %>
+                <span class="notif-badge notif-badge--org">🏢</span>
+              <% } else if (notif.type === 'provider_application') { %>
+                <span class="notif-badge notif-badge--provider">🔧</span>
+              <% } else { %>
+                <span class="notif-badge notif-badge--system">⚙️</span>
+              <% } %>
+            </div>
+
+            <div class="notif-content-col">
+              <div class="notif-header-row">
+                <h4 class="notif-title"><%= notif.title %></h4>
+                <span class="notif-time"><%= notif.timestamp %></span>
+              </div>
+              <p class="notif-message"><%= notif.message %></p>
+              <div class="notif-actions-row">
+                <% if (notif.link) { %>
+                  <a href="<%= notif.link %>" class="notif-action-link">Review in <%= notif.link.replace('/admin/', '').toUpperCase() %> →</a>
+                <% } %>
+                <% if (!notif.read) { %>
+                  <span class="badge-unread-dot">New Alert</span>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </section>
+
+</div>

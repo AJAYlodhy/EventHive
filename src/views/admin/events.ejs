@@ -1,0 +1,149 @@
+<!-- Event Management & Approvals Page -->
+<div class="page-container">
+
+  <!-- Header Controls & Filters -->
+  <div class="toolbar-card">
+    <form action="/admin/events" method="GET" class="filter-form">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          name="search"
+          placeholder="Search events, organizers, venues, topics..."
+          value="<%= filters.search %>"
+          class="form-input search-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Status:</label>
+        <select name="status" class="form-select" onchange="this.form.submit()">
+          <option value="All" <%= filters.status === 'All' ? 'selected' : '' %>>All Statuses</option>
+          <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>Pending Approval</option>
+          <option value="approved" <%= filters.status === 'approved' ? 'selected' : '' %>>Approved / Live</option>
+          <option value="rejected" <%= filters.status === 'rejected' ? 'selected' : '' %>>Rejected</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Category:</label>
+        <select name="category" class="form-select" onchange="this.form.submit()">
+          <option value="All" <%= filters.category === 'All' ? 'selected' : '' %>>All Categories</option>
+          <option value="Technical" <%= filters.category === 'Technical' ? 'selected' : '' %>>Technical</option>
+          <option value="Workshop" <%= filters.category === 'Workshop' ? 'selected' : '' %>>Workshop</option>
+          <option value="Cultural" <%= filters.category === 'Cultural' ? 'selected' : '' %>>Cultural</option>
+          <option value="Seminar" <%= filters.category === 'Seminar' ? 'selected' : '' %>>Seminar</option>
+          <option value="Sports" <%= filters.category === 'Sports' ? 'selected' : '' %>>Sports</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--sm">Filter</button>
+      <% if (filters.search || filters.status !== 'All' || filters.category !== 'All') { %>
+        <a href="/admin/events" class="btn btn--outline btn--sm">Reset</a>
+      <% } %>
+    </form>
+  </div>
+
+  <!-- Events List Section -->
+  <section class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">All Campus Events (<%= events.length %>)</h2>
+    </div>
+
+    <% if (events.length === 0) { %>
+      <div class="empty-state">
+        <span class="empty-icon">🎪</span>
+        <h3>No events found</h3>
+        <p>No campus events match your active filters.</p>
+        <a href="/admin/events" class="btn btn--primary btn--sm" style="margin-top: 12px;">Clear Filters</a>
+      </div>
+    <% } else { %>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Category</th>
+              <th>Organizer</th>
+              <th>Date & Venue</th>
+              <th>Capacity</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% events.forEach(function(evt) { %>
+              <tr>
+                <td>
+                  <div>
+                    <strong class="user-name"><%= evt.title %></strong>
+                    <span class="user-email"><%= evt.description %></span>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge badge--<%= evt.category.toLowerCase() %>">
+                    <%= evt.category %>
+                  </span>
+                </td>
+                <td>
+                  <div>
+                    <strong><%= evt.organizer %></strong>
+                    <span class="user-email"><%= evt.department %></span>
+                  </div>
+                </td>
+                <td>
+                  <div>
+                    <span><%= new Date(evt.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %></span>
+                    <span class="user-email">📍 <%= evt.venue %></span>
+                  </div>
+                </td>
+                <td>
+                  <strong><%= evt.totalSeats - evt.availableSeats %></strong> / <%= evt.totalSeats %>
+                </td>
+                <td>
+                  <span class="status-badge status-badge--<%= evt.status %>">
+                    <%= evt.status.charAt(0).toUpperCase() + evt.status.slice(1) %>
+                  </span>
+                </td>
+                <td>
+                  <div class="action-btn-group">
+                    <% if (evt.status === 'pending') { %>
+                      <form action="/admin/events/<%= evt.id %>/approve" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn--sm btn--approve" title="Approve Event">
+                          ✓ Approve
+                        </button>
+                      </form>
+                      <form action="/admin/events/<%= evt.id %>/reject" method="POST" style="display:inline;" onsubmit="return confirm('Reject event: <%= evt.title %>?');">
+                        <button type="submit" class="btn btn--sm btn--reject" title="Reject Event">
+                          ✗ Reject
+                        </button>
+                      </form>
+                    <% } else if (evt.status === 'approved') { %>
+                      <form action="/admin/events/<%= evt.id %>/reject" method="POST" style="display:inline;" onsubmit="return confirm('Unpublish/reject event: <%= evt.title %>?');">
+                        <button type="submit" class="btn btn--sm btn--warn" title="Reject / Unpublish">
+                          Reject
+                        </button>
+                      </form>
+                    <% } else { %>
+                      <form action="/admin/events/<%= evt.id %>/approve" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn--sm btn--approve" title="Re-approve Event">
+                          Re-Approve
+                        </button>
+                      </form>
+                    <% } %>
+                    <form action="/admin/events/<%= evt.id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('Delete event permanently?');">
+                      <button type="submit" class="btn btn--sm btn--outline" title="Delete">
+                        🗑️
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+
+</div>

@@ -1,0 +1,119 @@
+<!-- Organizer Management Page -->
+<div class="page-container">
+
+  <!-- Header Controls & Filters -->
+  <div class="toolbar-card">
+    <form action="/admin/organizers" method="GET" class="filter-form">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          name="search"
+          placeholder="Search organizers, clubs, leads, departments..."
+          value="<%= filters.search %>"
+          class="form-input search-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Verification Status:</label>
+        <select name="status" class="form-select" onchange="this.form.submit()">
+          <option value="All" <%= filters.status === 'All' ? 'selected' : '' %>>All Statuses</option>
+          <option value="Approved" <%= filters.status === 'Approved' ? 'selected' : '' %>>Approved / Verified</option>
+          <option value="Pending" <%= filters.status === 'Pending' ? 'selected' : '' %>>Pending Approval</option>
+          <option value="Rejected" <%= filters.status === 'Rejected' ? 'selected' : '' %>>Rejected</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--sm">Filter</button>
+      <% if (filters.search || filters.status !== 'All') { %>
+        <a href="/admin/organizers" class="btn btn--outline btn--sm">Reset</a>
+      <% } %>
+    </form>
+  </div>
+
+  <!-- Organizers Section -->
+  <section class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">Campus Event Organizers & Clubs (<%= organizers.length %>)</h2>
+    </div>
+
+    <% if (organizers.length === 0) { %>
+      <div class="empty-state">
+        <span class="empty-icon">🏢</span>
+        <h3>No organizers found</h3>
+        <p>No student clubs or organizers match your current filter settings.</p>
+        <a href="/admin/organizers" class="btn btn--primary btn--sm" style="margin-top: 12px;">Reset Filters</a>
+      </div>
+    <% } else { %>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Organization / Club</th>
+              <th>Lead Coordinator</th>
+              <th>Department</th>
+              <th>Events Hosted</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% organizers.forEach(function(org) { %>
+              <tr>
+                <td>
+                  <div>
+                    <strong class="user-name"><%= org.name %></strong>
+                    <span class="user-email"><%= org.description %></span>
+                  </div>
+                </td>
+                <td>
+                  <div>
+                    <strong><%= org.leadName %></strong>
+                    <span class="user-email"><%= org.email %></span>
+                  </div>
+                </td>
+                <td><%= org.department %></td>
+                <td><strong><%= org.eventsHosted %></strong> events</td>
+                <td>
+                  <span class="status-badge status-badge--<%= org.status.toLowerCase() %>">
+                    <%= org.status %>
+                  </span>
+                </td>
+                <td>
+                  <div class="action-btn-group">
+                    <% if (org.status === 'Pending') { %>
+                      <form action="/admin/organizers/<%= org.id %>/approve" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn--sm btn--approve" title="Approve Organizer">
+                          ✓ Approve
+                        </button>
+                      </form>
+                      <form action="/admin/organizers/<%= org.id %>/reject" method="POST" style="display:inline;" onsubmit="return confirm('Reject registration for <%= org.name %>?');">
+                        <button type="submit" class="btn btn--sm btn--reject" title="Reject Organizer">
+                          ✗ Reject
+                        </button>
+                      </form>
+                    <% } else if (org.status === 'Approved') { %>
+                      <form action="/admin/organizers/<%= org.id %>/reject" method="POST" style="display:inline;" onsubmit="return confirm('Revoke verification for <%= org.name %>?');">
+                        <button type="submit" class="btn btn--sm btn--warn" title="Revoke Approval">
+                          Revoke
+                        </button>
+                      </form>
+                    <% } else { %>
+                      <form action="/admin/organizers/<%= org.id %>/approve" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn--sm btn--approve" title="Re-approve Organizer">
+                          Re-Approve
+                        </button>
+                      </form>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+
+</div>

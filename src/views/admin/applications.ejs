@@ -1,0 +1,132 @@
+<!-- Event Applications Management Page -->
+<div class="page-container">
+
+  <!-- Header Controls & Filters -->
+  <div class="toolbar-card">
+    <form action="/admin/applications" method="GET" class="filter-form">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          name="search"
+          placeholder="Search application proposals, providers, events..."
+          value="<%= filters.search %>"
+          class="form-input search-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Status:</label>
+        <select name="status" class="form-select" onchange="this.form.submit()">
+          <option value="All" <%= filters.status === 'All' ? 'selected' : '' %>>All Statuses</option>
+          <option value="Pending" <%= filters.status === 'Pending' ? 'selected' : '' %>>Pending Review</option>
+          <option value="Accepted" <%= filters.status === 'Accepted' ? 'selected' : '' %>>Accepted</option>
+          <option value="Rejected" <%= filters.status === 'Rejected' ? 'selected' : '' %>>Rejected</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Filter by Event:</label>
+        <select name="eventId" class="form-select" onchange="this.form.submit()">
+          <option value="All" <%= filters.eventId === 'All' ? 'selected' : '' %>>All Campus Events</option>
+          <% events.forEach(function(e) { %>
+            <option value="<%= e.id %>" <%= filters.eventId == e.id ? 'selected' : '' %>><%= e.title %></option>
+          <% }); %>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--sm">Filter</button>
+      <% if (filters.search || filters.status !== 'All' || filters.eventId !== 'All') { %>
+        <a href="/admin/applications" class="btn btn--outline btn--sm">Reset</a>
+      <% } %>
+    </form>
+  </div>
+
+  <!-- Applications List Section -->
+  <section class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">Vendor & Service Provider Event Proposals (<%= applications.length %>)</h2>
+    </div>
+
+    <% if (applications.length === 0) { %>
+      <div class="empty-state">
+        <span class="empty-icon">📄</span>
+        <h3>No event applications found</h3>
+        <p>No proposals match your current filter settings.</p>
+        <a href="/admin/applications" class="btn btn--primary btn--sm" style="margin-top: 12px;">Reset Filters</a>
+      </div>
+    <% } else { %>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Event Title</th>
+              <th>Applicant / Provider</th>
+              <th>Category</th>
+              <th>Proposal Summary</th>
+              <th>Estimate</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% applications.forEach(function(app) { %>
+              <tr>
+                <td>
+                  <strong class="user-name"><%= app.eventTitle %></strong>
+                  <span class="user-email">Submitted <%= app.appliedDate %></span>
+                </td>
+                <td>
+                  <strong><%= app.providerName %></strong>
+                </td>
+                <td>
+                  <span class="badge badge--provider"><%= app.category %></span>
+                </td>
+                <td>
+                  <p style="max-width: 280px; font-size: 13px; color: var(--color-text);"><%= app.proposal %></p>
+                </td>
+                <td>
+                  <strong style="color: #059669;"><%= app.estimatedCost %></strong>
+                </td>
+                <td>
+                  <span class="status-badge status-badge--<%= app.status.toLowerCase() %>">
+                    <%= app.status %>
+                  </span>
+                </td>
+                <td>
+                  <div class="action-btn-group">
+                    <% if (app.status === 'Pending') { %>
+                      <form action="/admin/applications/<%= app.id %>/accept" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn--sm btn--approve" title="Accept Proposal">
+                          ✓ Accept
+                        </button>
+                      </form>
+                      <form action="/admin/applications/<%= app.id %>/reject" method="POST" style="display:inline;" onsubmit="return confirm('Reject proposal from <%= app.providerName %>?');">
+                        <button type="submit" class="btn btn--sm btn--reject" title="Reject Proposal">
+                          ✗ Reject
+                        </button>
+                      </form>
+                    <% } else if (app.status === 'Accepted') { %>
+                      <form action="/admin/applications/<%= app.id %>/reject" method="POST" style="display:inline;" onsubmit="return confirm('Revoke acceptance for <%= app.providerName %>?');">
+                        <button type="submit" class="btn btn--sm btn--warn" title="Revoke">
+                          Revoke
+                        </button>
+                      </form>
+                    <% } else { %>
+                      <form action="/admin/applications/<%= app.id %>/accept" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn--sm btn--approve" title="Re-accept">
+                          Re-Accept
+                        </button>
+                      </form>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+
+</div>

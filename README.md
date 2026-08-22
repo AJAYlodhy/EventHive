@@ -1,18 +1,22 @@
-# 🐝 EventHive
+# 🐝 EventHive – Admin Panel (`feature/admin`)
 
-**AI-Powered College Event Management Platform**
+**College Event Management Platform — Administrative Management Module**
 
-EventHive is a collaborative platform for managing college events, connecting students, organizers, and administrators in one place.
+EventHive Admin Panel provides a comprehensive, responsive management workspace for college administrators to oversee users, student organizers, event approval pipelines, vendor proposals, reports, and campus notifications.
 
-## Tech Stack
+---
+
+## 🛠️ Tech Stack
 
 - **Backend:** Node.js + Express.js
 - **View Engine:** EJS (Embedded JavaScript Templates)
 - **Styling:** Vanilla CSS with CSS Custom Properties
-- **Authentication:** JWT (planned)
-- **Database:** TBD (mock data in use)
+- **Architecture:** MVC (Model/Mock Data, Views, Controllers, Middleware)
+- **Authentication:** Session-Based Admin Authentication & Protected Route Middleware
 
-## Project Structure
+---
+
+## 📁 Project Structure
 
 ```
 EVENTHIVE/
@@ -22,77 +26,64 @@ EVENTHIVE/
 ├── .gitignore                 # Git ignore rules
 ├── public/                    # Static assets
 │   ├── css/
-│   │   └── admin.css          # Admin panel styles
+│   │   └── admin.css          # Admin panel design system & styles
 │   └── js/
-│       └── admin.js           # Admin client-side JS
+│       └── admin.js           # Admin client-side JS & interactions
 └── src/
     ├── controllers/
-    │   └── adminController.js # Admin route handlers
+    │   └── adminController.js # Complete Admin controller actions
+    ├── middleware/
+    │   └── auth.js            # Admin authentication & session protection
     ├── data/
-    │   └── mockData.js        # Mock data (replace with DB)
+    │   └── mockData.js        # Data store (ready for DB layer integration)
     ├── routes/
     │   └── adminRoutes.js     # Admin route definitions
     └── views/
         ├── layouts/
-        │   └── adminLayout.ejs  # Admin base layout
+        │   └── adminLayout.ejs  # Base Admin Layout with Sidebar & Topnav
         └── admin/
-            └── dashboard.ejs    # Admin dashboard page
+            ├── login.ejs        # Admin Login Page
+            ├── dashboard.ejs    # KPI Statistics & Pending Approvals
+            ├── users.ejs        # User Management (Students, Organizers)
+            ├── organizers.ejs   # Club & Organizer Approvals
+            ├── events.ejs       # Campus Event Approvals & Pipeline
+            ├── providers.ejs    # Service Provider & Vendor Verification
+            ├── applications.ejs # Event Vendor Proposals Management
+            ├── notifications.ejs# Admin Notifications Inbox
+            └── reports.ejs      # Reports, Analytics & Engagement Metrics
 ```
 
-## Getting Started
+---
 
-### Prerequisites
+## 🚀 Getting Started
 
-- [Node.js](https://nodejs.org/) (v18 or higher recommended)
+### 1. Install Dependencies
+```bash
+npm install
+```
 
-### Setup
+### 2. Start Development Server
+```bash
+npm run dev
+# or
+npm start
+```
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/AJAYlodhy/EventHive.git
-   cd EventHive
-   ```
+The application runs on `http://localhost:5000`.
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+---
 
-3. Create a `.env` file from the template:
-   ```bash
-   cp .env.example .env
-   ```
+## 🔑 Admin Routes & Features
 
-4. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-5. Open the admin dashboard:
-   ```
-   http://localhost:5000/admin/dashboard
-   ```
-
-## Available Scripts
-
-| Script | Command | Description |
-|--------|---------|-------------|
-| Start | `npm start` | Run production server |
-| Dev | `npm run dev` | Run with nodemon (auto-reload) |
-
-## Branch Structure
-
-| Branch | Purpose |
-|--------|---------|
-| `main` | Stable production code |
-| `feature/admin` | Admin panel development |
-| `feature/student` | Student-facing features |
-| `feature/organizer` | Organizer-facing features |
-
-## Team
-
-EventHive Team
-
-## License
-
-ISC
+| Route | Method | Description |
+|---|---|---|
+| `/admin/login` | `GET` / `POST` | Admin authentication page (Default dev: `admin@eventhive.com` / `admin123`) |
+| `/admin/logout` | `GET` | Clear session and log out |
+| `/admin/dashboard` | `GET` | Dashboard with KPIs, recent events, and approval queue |
+| `/admin/users` | `GET` | User list with search, role filters, status toggles, and deletion |
+| `/admin/organizers` | `GET` | Student clubs & organizers verification management |
+| `/admin/events` | `GET` | Campus events pipeline (Approve, Reject, Delete) |
+| `/admin/providers` | `GET` | Service vendor management (Hotels, Catering, Sound, Decor) |
+| `/admin/applications` | `GET` | Event proposals management from vendors |
+| `/admin/notifications` | `GET` | Administrative alerts and mark-as-read inbox |
+| `/admin/reports` | `GET` | Engagement analytics, department breakdowns, and category stats |

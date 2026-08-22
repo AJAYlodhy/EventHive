@@ -1,0 +1,140 @@
+<!-- Service Providers Management Page -->
+<div class="page-container">
+
+  <!-- Header Controls & Filters -->
+  <div class="toolbar-card">
+    <form action="/admin/providers" method="GET" class="filter-form">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          name="search"
+          placeholder="Search vendors, caterers, sound, decor, hotels..."
+          value="<%= filters.search %>"
+          class="form-input search-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Category:</label>
+        <select name="category" class="form-select" onchange="this.form.submit()">
+          <option value="All" <%= filters.category === 'All' ? 'selected' : '' %>>All Categories</option>
+          <option value="Catering" <%= filters.category === 'Catering' ? 'selected' : '' %>>Catering</option>
+          <option value="Hotel & Hospitality" <%= filters.category === 'Hotel & Hospitality' ? 'selected' : '' %>>Hotel & Hospitality</option>
+          <option value="Sound & Lighting" <%= filters.category === 'Sound & Lighting' ? 'selected' : '' %>>Sound & Lighting</option>
+          <option value="Tent & Staging" <%= filters.category === 'Tent & Staging' ? 'selected' : '' %>>Tent & Staging</option>
+          <option value="Photography & Media" <%= filters.category === 'Photography & Media' ? 'selected' : '' %>>Photography & Media</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Status:</label>
+        <select name="status" class="form-select" onchange="this.form.submit()">
+          <option value="All" <%= filters.status === 'All' ? 'selected' : '' %>>All Statuses</option>
+          <option value="Approved" <%= filters.status === 'Approved' ? 'selected' : '' %>>Approved</option>
+          <option value="Pending" <%= filters.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+          <option value="Rejected" <%= filters.status === 'Rejected' ? 'selected' : '' %>>Rejected</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--sm">Filter</button>
+      <% if (filters.search || filters.category !== 'All' || filters.status !== 'All') { %>
+        <a href="/admin/providers" class="btn btn--outline btn--sm">Reset</a>
+      <% } %>
+    </form>
+  </div>
+
+  <!-- Providers Section -->
+  <section class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">Verified Campus Service Providers & Vendors (<%= providers.length %>)</h2>
+    </div>
+
+    <% if (providers.length === 0) { %>
+      <div class="empty-state">
+        <span class="empty-icon">🔧</span>
+        <h3>No service providers found</h3>
+        <p>No external vendors match your search or filter options.</p>
+        <a href="/admin/providers" class="btn btn--primary btn--sm" style="margin-top: 12px;">Reset Filters</a>
+      </div>
+    <% } else { %>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Provider / Vendor</th>
+              <th>Category</th>
+              <th>Contact Person</th>
+              <th>Rating & History</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% providers.forEach(function(prov) { %>
+              <tr>
+                <td>
+                  <div>
+                    <strong class="user-name"><%= prov.name %></strong>
+                    <span class="user-email"><%= prov.services %></span>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge badge--provider">
+                    <%= prov.category %>
+                  </span>
+                </td>
+                <td>
+                  <div>
+                    <strong><%= prov.contactPerson %></strong>
+                    <span class="user-email">✉️ <%= prov.email %> • 📞 <%= prov.phone %></span>
+                  </div>
+                </td>
+                <td>
+                  <div>
+                    <span style="color: #f59e0b; font-weight: bold;">⭐ <%= prov.rating %> / 5.0</span>
+                    <span class="user-email"><%= prov.eventsServed %> campus events served</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="status-badge status-badge--<%= prov.status.toLowerCase() %>">
+                    <%= prov.status %>
+                  </span>
+                </td>
+                <td>
+                  <div class="action-btn-group">
+                    <% if (prov.status === 'Pending') { %>
+                      <form action="/admin/providers/<%= prov.id %>/approve" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn--sm btn--approve" title="Approve Provider">
+                          ✓ Approve
+                        </button>
+                      </form>
+                      <form action="/admin/providers/<%= prov.id %>/reject" method="POST" style="display:inline;" onsubmit="return confirm('Reject vendor application for <%= prov.name %>?');">
+                        <button type="submit" class="btn btn--sm btn--reject" title="Reject Provider">
+                          ✗ Reject
+                        </button>
+                      </form>
+                    <% } else if (prov.status === 'Approved') { %>
+                      <form action="/admin/providers/<%= prov.id %>/reject" method="POST" style="display:inline;" onsubmit="return confirm('Suspend provider <%= prov.name %>?');">
+                        <button type="submit" class="btn btn--sm btn--warn" title="Suspend Provider">
+                          Suspend
+                        </button>
+                      </form>
+                    <% } else { %>
+                      <form action="/admin/providers/<%= prov.id %>/approve" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn--sm btn--approve" title="Re-approve Provider">
+                          Re-Approve
+                        </button>
+                      </form>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+
+</div>

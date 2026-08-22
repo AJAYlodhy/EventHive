@@ -11,8 +11,13 @@
   <!-- Sidebar Navigation -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <h2 class="sidebar-logo">🐝 EventHive</h2>
-      <span class="sidebar-subtitle">Admin Panel</span>
+      <div class="sidebar-brand">
+        <span class="sidebar-logo">🐝</span>
+        <div>
+          <h2 class="sidebar-title">EventHive</h2>
+          <span class="sidebar-subtitle">Admin Workspace</span>
+        </div>
+      </div>
     </div>
 
     <nav class="sidebar-nav">
@@ -24,43 +29,59 @@
           </a>
         </li>
         <li>
-          <a href="#" class="nav-link">
+          <a href="/admin/users" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'users' ? 'active' : '' %>">
             <span class="nav-icon">👥</span>
-            <span class="nav-text">Users</span>
+            <span class="nav-text">User Management</span>
           </a>
         </li>
         <li>
-          <a href="#" class="nav-link">
-            <span class="nav-icon">🎪</span>
-            <span class="nav-text">Events</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="nav-link">
-            <span class="nav-icon">📋</span>
-            <span class="nav-text">Approvals</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="nav-link">
+          <a href="/admin/organizers" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'organizers' ? 'active' : '' %>">
             <span class="nav-icon">🏢</span>
             <span class="nav-text">Organizers</span>
           </a>
         </li>
         <li>
-          <a href="#" class="nav-link">
+          <a href="/admin/events" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'events' ? 'active' : '' %>">
+            <span class="nav-icon">🎪</span>
+            <span class="nav-text">Events & Approvals</span>
+          </a>
+        </li>
+        <li>
+          <a href="/admin/providers" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'providers' ? 'active' : '' %>">
             <span class="nav-icon">🔧</span>
             <span class="nav-text">Service Providers</span>
           </a>
         </li>
         <li>
-          <a href="#" class="nav-link">
-            <span class="nav-icon">⚙️</span>
-            <span class="nav-text">Settings</span>
+          <a href="/admin/applications" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'applications' ? 'active' : '' %>">
+            <span class="nav-icon">📄</span>
+            <span class="nav-text">Event Applications</span>
+          </a>
+        </li>
+        <li>
+          <a href="/admin/notifications" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'notifications' ? 'active' : '' %>">
+            <span class="nav-icon">🔔</span>
+            <span class="nav-text">Notifications</span>
+            <% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
+              <span class="badge-count"><%= unreadCount %></span>
+            <% } %>
+          </a>
+        </li>
+        <li>
+          <a href="/admin/reports" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'reports' ? 'active' : '' %>">
+            <span class="nav-icon">📈</span>
+            <span class="nav-text">Reports & Stats</span>
           </a>
         </li>
       </ul>
     </nav>
+
+    <div class="sidebar-footer">
+      <a href="/admin/logout" class="nav-link nav-link--logout">
+        <span class="nav-icon">🚪</span>
+        <span class="nav-text">Sign Out</span>
+      </a>
+    </div>
   </aside>
 
   <!-- Main Content Area -->
@@ -68,17 +89,43 @@
 
     <!-- Top Navigation -->
     <header class="top-nav">
-      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
-        ☰
-      </button>
-      <h1 class="page-title"><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Admin' %></h1>
+      <div class="top-nav-left">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+          ☰
+        </button>
+        <h1 class="page-title"><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Admin' %></h1>
+      </div>
+
       <div class="top-nav-right">
-        <span class="admin-badge">Admin</span>
-        <span class="admin-avatar">👤</span>
+        <a href="/admin/notifications" class="topnav-icon-btn" title="Notifications">
+          🔔
+          <% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
+            <span class="topnav-badge-dot"></span>
+          <% } %>
+        </a>
+
+        <div class="admin-profile-chip">
+          <span class="admin-avatar">👤</span>
+          <div class="admin-info-text">
+            <span class="admin-name"><%= typeof adminUser !== 'undefined' ? adminUser.name : 'Admin' %></span>
+            <span class="admin-role">Super Admin</span>
+          </div>
+        </div>
+
+        <a href="/admin/logout" class="btn btn--outline btn--sm" title="Log Out">Logout</a>
       </div>
     </header>
 
-    <!-- Page Content (injected by child view via content variable) -->
+    <!-- Global Alert Banner if present -->
+    <% if (typeof alert !== 'undefined' && alert) { %>
+      <div class="alert-banner" id="alertBanner">
+        <span class="alert-icon">ℹ️</span>
+        <span class="alert-text"><%= alert %></span>
+        <button class="alert-close" onclick="document.getElementById('alertBanner').remove()">✕</button>
+      </div>
+    <% } %>
+
+    <!-- Page Content (injected by child view) -->
     <main class="main-content">
       <%- typeof content !== 'undefined' ? content : '' %>
     </main>

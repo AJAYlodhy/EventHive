@@ -1,0 +1,142 @@
+<!-- Admin Reports & Analytics Page -->
+<div class="page-container">
+
+  <!-- Overview Summary Cards -->
+  <section class="dashboard-cards">
+    <div class="stat-card stat-card--users">
+      <div class="stat-card__icon">👥</div>
+      <div class="stat-card__info">
+        <span class="stat-card__value"><%= reports.overview.totalUsers.toLocaleString() %></span>
+        <span class="stat-card__label">Active Student Reach</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-card--organizers">
+      <div class="stat-card__icon">🏢</div>
+      <div class="stat-card__info">
+        <span class="stat-card__value"><%= reports.overview.totalOrganizers %></span>
+        <span class="stat-card__label">Clubs & Organizers</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-card--events">
+      <div class="stat-card__icon">🎪</div>
+      <div class="stat-card__info">
+        <span class="stat-card__value"><%= reports.overview.approvedEvents %> / <%= reports.overview.totalEvents %></span>
+        <span class="stat-card__label">Approved / Total Events</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-card--providers">
+      <div class="stat-card__icon">🔧</div>
+      <div class="stat-card__info">
+        <span class="stat-card__value"><%= reports.overview.totalProviders %></span>
+        <span class="stat-card__label">Service Providers</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-card--applications">
+      <div class="stat-card__icon">📄</div>
+      <div class="stat-card__info">
+        <span class="stat-card__value"><%= reports.overview.acceptedApplications %> / <%= reports.overview.totalApplications %></span>
+        <span class="stat-card__label">Proposals Accepted</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-card--approvals">
+      <div class="stat-card__icon">📊</div>
+      <div class="stat-card__info">
+        <span class="stat-card__value"><%= Math.round((reports.overview.approvedEvents / (reports.overview.totalEvents || 1)) * 100) %>%</span>
+        <span class="stat-card__label">Approval Rate</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Category & Department Analysis Grid -->
+  <div class="analytics-grid">
+
+    <!-- Category Distribution -->
+    <section class="dashboard-section">
+      <div class="section-header">
+        <h2 class="section-title">Event Category Distribution</h2>
+      </div>
+      <div class="category-bars-list">
+        <% reports.categoryBreakdown.forEach(function(item) { %>
+          <div class="category-bar-item">
+            <div class="category-bar-header">
+              <span class="category-bar-name"><%= item.category %></span>
+              <span class="category-bar-val"><strong><%= item.count %> events</strong> (<%= item.percentage %>%)</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill progress-fill--<%= item.category.toLowerCase() %>" style="width: <%= item.percentage %>%;"></div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </section>
+
+    <!-- Monthly Trend Table -->
+    <section class="dashboard-section">
+      <div class="section-header">
+        <h2 class="section-title">Monthly Campus Engagement Trend</h2>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Events Hosted</th>
+              <th>Total Attendance</th>
+              <th>Vendor Proposals</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% reports.monthlyTrend.forEach(function(m) { %>
+              <tr>
+                <td><strong><%= m.month %></strong></td>
+                <td><span class="badge badge--primary"><%= m.events %></span></td>
+                <td><strong><%= m.attendance.toLocaleString() %></strong> attendees</td>
+                <td><%= m.applications %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Departmental Participation Breakdown -->
+  <section class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">Department-Wise Event Participation</h2>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Academic Department</th>
+            <th>Events Organized</th>
+            <th>Registered Students</th>
+            <th>Campus Engagement Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% reports.departmentParticipation.forEach(function(d) { %>
+            <tr>
+              <td><strong><%= d.dept %></strong></td>
+              <td><%= d.events %></td>
+              <td><strong><%= d.students %></strong></td>
+              <td>
+                <span class="status-badge status-badge--approved">
+                  High Activity
+                </span>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>

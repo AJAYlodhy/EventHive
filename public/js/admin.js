@@ -22,14 +22,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // --- Active Nav Link Highlight ---
   const currentPath = window.location.pathname;
-  const navLinks = document.querySelectorAll('.nav-link');
+  const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
 
   navLinks.forEach(function (link) {
     const href = link.getAttribute('href');
-    if (href === currentPath) {
+    if (href === currentPath || (currentPath.startsWith(href) && href !== '/admin/dashboard')) {
       link.classList.add('active');
-    } else if (href !== '#' && href !== '/admin/dashboard') {
-      link.classList.remove('active');
     }
   });
+
+  // --- Auto-dismiss alert banner after 5 seconds ---
+  const alertBanner = document.getElementById('alertBanner');
+  if (alertBanner) {
+    setTimeout(function () {
+      alertBanner.style.opacity = '0';
+      alertBanner.style.transition = 'opacity 0.5s ease';
+      setTimeout(function () {
+        if (alertBanner.parentNode) alertBanner.remove();
+      }, 500);
+    }, 5000);
+  }
 });
