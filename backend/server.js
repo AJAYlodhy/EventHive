@@ -1,14 +1,84 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+const path = require('path');
+const dotenv = require('dotenv');
+const { connectDB } = require('./config/db');
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
-app.use(express.json());
+// Connect to Database if URI available (fallback in-memory store is automatic)
+connectDB();
 
-// In-Memory Database for Campus Events & Registrations
+// View Engine Setup for Admin Panel (EJS)
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '..', 'src', 'views'));
+
+// Middleware
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+// Body parsing with clean JSON error handling
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Static Assets (for Admin Panel and Static Frontend Assets)
+app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist')));
+
+// Middleware to catch JSON parsing errors
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({
+      success: false,
+      message: 'Malformed JSON payload received.',
+    });
+  }
+  next(err);
+});
+
+// Health Check
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'online',
+    service: 'EventHive Unified Backend API',
+    timestamp: new Date().toISOString(),
+    modules: {
+      admin: 'Active (EJS MVC at /admin)',
+      student: 'Active (REST APIs at /api/events, /api/registrations, /api/student)',
+      organizer: 'Active (REST APIs at /api/organizer, /api/auth)',
+    },
+  });
+});
+
+// --- MOUNT ROUTES ---
+
+// 1. Auth Routes (Organizer & User auth)
+const authRoutes = require('./routes/authRoutes');
+app.use('/api/auth', authRoutes);
+
+// 2. Organizer Routes (Events CRUD, Registrations, Analytics, QR Attendance, Export)
+const organizerRoutes = require('./routes/organizerRoutes');
+app.use('/api/organizer', organizerRoutes);
+
+// 3. Admin Routes (Admin EJS Dashboard, User Management, Approvals, Reports)
+try {
+  const adminRoutes = require('../src/routes/adminRoutes');
+  app.use('/admin', adminRoutes);
+} catch (e) {
+  console.warn('Admin routes notice:', e.message);
+}
+
+// 4. Student & Campus Events API Endpoints
+const store = require('./models/store');
+
+// In-Memory Student Profile State
 let studentProfile = {
   id: "STU-2026-042",
   name: "Aashish Kumawat",
@@ -21,155 +91,7 @@ let studentProfile = {
   bio: "Passionate developer, tech enthusiast, and active participant in campus hackathons and coding clubs."
 };
 
-let events = [
-  {
-    id: "EVT-101",
-    title: "HackHive 2026: Annual Campus Hackathon",
-    category: "Technical",
-    department: "Computer Science & Engineering",
-    description: "24-hour sprint to build innovative solutions for campus and societal problems. Mentors from top tech firms will be present.",
-    date: "2026-09-15",
-    time: "09:00 AM - 09:00 AM (Next Day)",
-    venue: "Main Auditorium & Innovation Lab",
-    organizer: "ACM Student Chapter",
-    totalSeats: 150,
-    availableSeats: 42,
-    eventType: "In-Person",
-    status: "Upcoming",
-    image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&auto=format&fit=crop&q=80"
-  },
-  {
-    id: "EVT-102",
-    title: "AI & Deep Learning Hands-on Workshop",
-    category: "Workshop",
-    department: "Computer Science & Engineering",
-    description: "Comprehensive workshop covering Transformers, PyTorch, and deploying neural networks for real-world computer vision tasks.",
-    date: "2026-09-02",
-    time: "02:00 PM - 05:30 PM",
-    venue: "CS Seminar Hall 2",
-    organizer: "AI & Robotics Club",
-    totalSeats: 80,
-    availableSeats: 18,
-    eventType: "In-Person",
-    status: "Upcoming",
-    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=600&auto=format&fit=crop&q=80"
-  },
-  {
-    id: "EVT-103",
-    title: "Rhythm & Beats: Inter-College Cultural Fest",
-    category: "Cultural",
-    department: "All",
-    description: "Annual cultural extravaganza featuring battle of the bands, group dances, fashion show, and guest DJ performance.",
-    date: "2026-09-20",
-    time: "04:00 PM - 10:00 PM",
-    venue: "Open Air Amphitheatre",
-    organizer: "Cultural Committee",
-    totalSeats: 500,
-    availableSeats: 120,
-    eventType: "In-Person",
-    status: "Upcoming",
-    image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80"
-  },
-  {
-    id: "EVT-104",
-    title: "RoboWars & Drone Racing Challenge",
-    category: "Technical",
-    department: "Electronics & Communication",
-    description: "Build and battle combat robots in custom arenas, plus obstacle-course drone racing for robotics enthusiasts.",
-    date: "2026-09-28",
-    time: "10:00 AM - 04:00 PM",
-    venue: "Indoor Sports Complex",
-    organizer: "Robotics Club",
-    totalSeats: 100,
-    availableSeats: 35,
-    eventType: "In-Person",
-    status: "Upcoming",
-    image: "https://images.unsplash.com/photo-1563770660941-20978e870e26?w=600&auto=format&fit=crop&q=80"
-  },
-  {
-    id: "EVT-105",
-    title: "Tech Career & Internship Readiness Seminar",
-    category: "Seminar",
-    department: "Computer Science & Engineering",
-    description: "Industry panel discussion on cracking software engineering internships, resume building, and mock interviews with alumni.",
-    date: "2026-08-28",
-    time: "03:00 PM - 05:00 PM",
-    venue: "Virtual via Google Meet",
-    organizer: "Training & Placement Cell",
-    totalSeats: 250,
-    availableSeats: 95,
-    eventType: "Online",
-    status: "Upcoming",
-    image: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=600&auto=format&fit=crop&q=80"
-  },
-  {
-    id: "EVT-106",
-    title: "Inter-Department Cricket Tournament",
-    category: "Sports",
-    department: "All",
-    description: "Annual knockout T20 cricket tournament between departments. Cheer on your departmental teams!",
-    date: "2026-09-10",
-    time: "08:00 AM - 06:00 PM",
-    venue: "University Sports Ground",
-    organizer: "Sports Council",
-    totalSeats: 200,
-    availableSeats: 60,
-    eventType: "In-Person",
-    status: "Upcoming",
-    image: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=600&auto=format&fit=crop&q=80"
-  },
-  {
-    id: "EVT-098",
-    title: "Web3 & Blockchain Developer Bootcamp",
-    category: "Workshop",
-    department: "Computer Science & Engineering",
-    description: "Hands-on introduction to Smart Contracts, Solidity, and decentralized app development.",
-    date: "2026-07-20",
-    time: "10:00 AM - 04:00 PM",
-    venue: "Lab 304, CS Block",
-    organizer: "Crypto & Blockchain Society",
-    totalSeats: 60,
-    availableSeats: 0,
-    eventType: "In-Person",
-    status: "Completed",
-    image: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=600&auto=format&fit=crop&q=80"
-  },
-  {
-    id: "EVT-099",
-    title: "National Youth Leadership Summit 2026",
-    category: "Seminar",
-    department: "Management",
-    description: "Keynote talks by distinguished entrepreneurs, policymakers, and industry pioneers on leadership.",
-    date: "2026-08-05",
-    time: "11:00 AM - 03:00 PM",
-    venue: "Central Auditorium",
-    organizer: "Student Affairs",
-    totalSeats: 300,
-    availableSeats: 0,
-    eventType: "In-Person",
-    status: "Completed",
-    image: "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=600&auto=format&fit=crop&q=80"
-  }
-];
-
-let registrations = [
-  {
-    id: "REG-901",
-    studentId: "STU-2026-042",
-    eventId: "EVT-101",
-    registrationDate: "2026-08-20",
-    status: "Confirmed"
-  },
-  {
-    id: "REG-902",
-    studentId: "STU-2026-042",
-    eventId: "EVT-098",
-    registrationDate: "2026-07-15",
-    status: "Attended"
-  }
-];
-
-let notifications = [
+let studentNotifications = [
   {
     id: "NOTIF-1",
     title: "Registration Confirmed!",
@@ -196,14 +118,7 @@ let notifications = [
   }
 ];
 
-// --- ROUTES ---
-
-// 1. Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', service: 'EventHive Backend API', version: '1.0.0' });
-});
-
-// 2. Student Profile
+// Student Profile Endpoints
 app.get('/api/student/profile', (req, res) => {
   res.json(studentProfile);
 });
@@ -223,45 +138,59 @@ app.put('/api/student/profile', (req, res) => {
   res.json({ success: true, message: 'Profile updated successfully', profile: studentProfile });
 });
 
-// 3. Events List & Details
+// Student Events List & Details
 app.get('/api/events', (req, res) => {
-  const { category, department, search, dateFilter } = req.query;
-  let filtered = [...events];
+  const { category, department, search } = req.query;
+  let allEvents = store.events.map(e => ({
+    id: e._id || e.id,
+    title: e.title,
+    category: e.category,
+    department: e.department || 'All',
+    description: e.description,
+    date: e.date ? new Date(e.date).toISOString().split('T')[0] : '2026-09-15',
+    time: e.time || '10:00 AM - 04:00 PM',
+    venue: e.location || e.venue || 'Campus Auditorium',
+    organizer: e.organizerName || e.organizer || 'Campus Club',
+    totalSeats: e.capacity || e.totalSeats || 100,
+    availableSeats: Math.max(0, (e.capacity || 100) - (e.registeredCount || 0)),
+    eventType: e.type || e.eventType || 'In-Person',
+    status: e.status || 'Upcoming',
+    image: e.bannerImage || e.image || 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&auto=format&fit=crop&q=80'
+  }));
 
   if (category && category !== 'All') {
-    filtered = filtered.filter(e => e.category.toLowerCase() === category.toLowerCase());
+    allEvents = allEvents.filter(e => e.category && e.category.toLowerCase() === category.toLowerCase());
   }
 
   if (department && department !== 'All') {
-    filtered = filtered.filter(e => e.department === department || e.department === 'All');
+    allEvents = allEvents.filter(e => e.department === department || e.department === 'All');
   }
 
   if (search) {
     const q = search.toLowerCase();
-    filtered = filtered.filter(e =>
+    allEvents = allEvents.filter(e =>
       e.title.toLowerCase().includes(q) ||
       e.description.toLowerCase().includes(q) ||
-      e.venue.toLowerCase().includes(q) ||
-      e.organizer.toLowerCase().includes(q)
+      e.venue.toLowerCase().includes(q)
     );
   }
 
-  res.json(filtered);
+  res.json(allEvents);
 });
 
 app.get('/api/events/:id', (req, res) => {
-  const event = events.find(e => e.id === req.params.id);
+  const event = store.events.find(e => (e._id === req.params.id || e.id === req.params.id));
   if (!event) {
     return res.status(404).json({ error: 'Event not found' });
   }
   res.json(event);
 });
 
-// 4. Registrations
+// Student Registrations Endpoints
 app.get('/api/registrations/my-events', (req, res) => {
-  const studentRegs = registrations.filter(r => r.studentId === studentProfile.id);
+  const studentRegs = store.registrations.filter(r => r.studentId === studentProfile.id || r.userId === studentProfile.id);
   const myEvents = studentRegs.map(reg => {
-    const event = events.find(e => e.id === reg.eventId);
+    const event = store.events.find(e => (e._id === reg.eventId || e.id === reg.eventId));
     return {
       ...reg,
       event: event || null
@@ -270,43 +199,44 @@ app.get('/api/registrations/my-events', (req, res) => {
   res.json(myEvents);
 });
 
-// Register for an event
 app.post('/api/registrations', (req, res) => {
   const { eventId } = req.body;
   if (!eventId) {
     return res.status(400).json({ error: 'Event ID is required' });
   }
 
-  const event = events.find(e => e.id === eventId);
+  const event = store.events.find(e => (e._id === eventId || e.id === eventId));
   if (!event) {
     return res.status(404).json({ error: 'Event not found' });
   }
 
-  // Check duplicate registration
-  const existing = registrations.find(r => r.studentId === studentProfile.id && r.eventId === eventId && r.status !== 'Cancelled');
+  // Duplicate registration check
+  const existing = store.registrations.find(r =>
+    (r.studentId === studentProfile.id || r.userId === studentProfile.id) &&
+    (r.eventId === eventId) &&
+    r.status !== 'Cancelled'
+  );
   if (existing) {
     return res.status(409).json({ error: 'You are already registered for this event' });
   }
 
-  // Check seat capacity
-  if (event.availableSeats <= 0) {
-    return res.status(400).json({ error: 'No seats available for this event' });
-  }
-
-  // Decrement seat
-  event.availableSeats -= 1;
+  event.registeredCount = (event.registeredCount || 0) + 1;
 
   const newReg = {
     id: `REG-${Date.now()}`,
+    _id: `REG-${Date.now()}`,
     studentId: studentProfile.id,
+    userId: studentProfile.id,
     eventId: eventId,
+    name: studentProfile.name,
+    email: studentProfile.email,
     registrationDate: new Date().toISOString().split('T')[0],
-    status: 'Confirmed'
+    status: 'Confirmed',
+    attended: false
   };
-  registrations.push(newReg);
+  store.registrations.push(newReg);
 
-  // Add notification
-  notifications.unshift({
+  studentNotifications.unshift({
     id: `NOTIF-${Date.now()}`,
     title: 'Registration Confirmed!',
     message: `You have registered for '${event.title}'.`,
@@ -322,24 +252,25 @@ app.post('/api/registrations', (req, res) => {
   });
 });
 
-// Cancel registration
 app.delete('/api/registrations/:eventId', (req, res) => {
   const { eventId } = req.params;
-  const regIndex = registrations.findIndex(r => r.studentId === studentProfile.id && r.eventId === eventId && r.status === 'Confirmed');
+  const regIndex = store.registrations.findIndex(r =>
+    (r.studentId === studentProfile.id || r.userId === studentProfile.id) &&
+    (r.eventId === eventId) &&
+    r.status === 'Confirmed'
+  );
 
   if (regIndex === -1) {
     return res.status(404).json({ error: 'Active registration not found' });
   }
 
-  registrations[regIndex].status = 'Cancelled';
-
-  // Increment available seats
-  const event = events.find(e => e.id === eventId);
-  if (event) {
-    event.availableSeats += 1;
+  store.registrations[regIndex].status = 'Cancelled';
+  const event = store.events.find(e => (e._id === eventId || e.id === eventId));
+  if (event && event.registeredCount > 0) {
+    event.registeredCount -= 1;
   }
 
-  notifications.unshift({
+  studentNotifications.unshift({
     id: `NOTIF-${Date.now()}`,
     title: 'Registration Cancelled',
     message: `Registration for '${event ? event.title : 'Event'}' has been cancelled.`,
@@ -351,41 +282,88 @@ app.delete('/api/registrations/:eventId', (req, res) => {
   res.json({ success: true, message: 'Registration cancelled successfully' });
 });
 
-// 5. Notifications
+// Notifications Endpoints
 app.get('/api/notifications', (req, res) => {
-  res.json(notifications);
+  res.json(studentNotifications);
 });
 
 app.put('/api/notifications/mark-read', (req, res) => {
-  notifications = notifications.map(n => ({ ...n, read: true }));
+  studentNotifications = studentNotifications.map(n => ({ ...n, read: true }));
   res.json({ success: true, message: 'All notifications marked as read' });
 });
 
-// 6. Statistics
+// Student Stats Endpoint
 app.get('/api/student/stats', (req, res) => {
-  const studentRegs = registrations.filter(r => r.studentId === studentProfile.id && r.status !== 'Cancelled');
+  const studentRegs = store.registrations.filter(r => (r.studentId === studentProfile.id || r.userId === studentProfile.id) && r.status !== 'Cancelled');
   const now = new Date().toISOString().split('T')[0];
 
   const upcomingCount = studentRegs.filter(r => {
-    const evt = events.find(e => e.id === r.eventId);
-    return evt && evt.date >= now;
+    const evt = store.events.find(e => (e._id === r.eventId || e.id === r.eventId));
+    return evt && (evt.date || '2026-09-15') >= now;
   }).length;
 
   const pastCount = studentRegs.filter(r => {
-    const evt = events.find(e => e.id === r.eventId);
-    return (evt && evt.date < now) || r.status === 'Attended';
+    const evt = store.events.find(e => (e._id === r.eventId || e.id === r.eventId));
+    return (evt && (evt.date || '2026-09-15') < now) || r.status === 'Attended';
   }).length;
-
-  const availableCount = events.filter(e => e.date >= now && e.status !== 'Completed').length;
 
   res.json({
     registeredEvents: studentRegs.length,
     upcomingEvents: upcomingCount,
     completedEvents: pastCount,
-    availableCampusEvents: availableCount
+    availableCampusEvents: store.events.length
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`EventHive Backend API running on http://localhost:${PORT}`);
+// Root / Welcome Endpoint
+app.get('/', (req, res) => {
+  // If request accepts HTML, render portal selection landing or redirect to /admin/dashboard
+  if (req.accepts('html')) {
+    return res.redirect('/admin/dashboard');
+  }
+  res.json({
+    name: 'EventHive Unified API Server',
+    version: '1.0.0',
+    description: 'AI-Powered College Event Management Platform',
+    modules: {
+      admin: '/admin/dashboard',
+      organizer: '/api/organizer',
+      student: '/api/events',
+      health: '/api/health'
+    }
+  });
 });
+
+// Global 404 Handler for APIs
+app.use('/api/*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `API endpoint not found: ${req.method} ${req.originalUrl}`,
+  });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled Server Error:', err);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+    error: process.env.NODE_ENV === 'production' ? null : err.stack,
+  });
+});
+
+// Start Server
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`========================================`);
+    console.log(`🚀 EventHive Unified Server running on port ${PORT}`);
+    console.log(`📡 URL: http://localhost:${PORT}`);
+    console.log(`📊 Admin Panel: http://localhost:${PORT}/admin/dashboard`);
+    console.log(`🎯 Organizer API: http://localhost:${PORT}/api/organizer`);
+    console.log(`🎓 Student API: http://localhost:${PORT}/api/events`);
+    console.log(`🩺 Health Check: http://localhost:${PORT}/api/health`);
+    console.log(`========================================`);
+  });
+}
+
+module.exports = app;
